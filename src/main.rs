@@ -7,7 +7,9 @@ use core::panic::PanicInfo;
 extern crate ds323x;
 extern crate embedded_hal;
 extern crate ag_lcd;
+extern crate numtoa;
 use ag_lcd::{Display, Blink, Cursor, LcdDisplay};
+use numtoa::NumToA;
 
 
 #[panic_handler]
@@ -37,12 +39,19 @@ fn main() -> ! {
         .with_cursor(Cursor::On)
         .build();
 
-    lcd.set_cursor(Cursor::Off);
-    lcd.set_blink(Blink::Off);
-
     lcd.print("Test message!");
 
-       loop {}
+    let mut adc = arduino_hal::Adc::new(peripherals.ADC, Default::default());
+    let a0 = pins.a0.into_analog_input(&mut adc);
+
+    loop {
+        let voltage = a0.analog_read(&mut adc);
+        let mut buffer = [0u8; 16];
+        let voltage: &str = voltage.numtoa_str(10, &mut buffer);
+        lcd.clear();
+        lcd.print(voltage);
+        arduino_hal::delay_ms(100);
+    }
    }
 }
 

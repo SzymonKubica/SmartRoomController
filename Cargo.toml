@@ -13,6 +13,7 @@ embedded-hal = "0.2.7"
 lcd-lcm1602-i2c = "0.1.0"
 ds323x = "0.5.0"
 ag-lcd = "0.1.2"
+numtoa = "0.2.4"
 
 [[bin]]
 name = "smart-lamp-alarm"
