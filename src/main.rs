@@ -9,9 +9,9 @@ extern crate embedded_hal;
 extern crate arduino_hal;
 extern crate ag_lcd;
 extern crate numtoa;
-use ag_lcd::{Display, Blink, Cursor, LcdDisplay};
+use ag_lcd::{Display, Blink, Cursor, LcdDisplay, Lines};
 use ds323x::{Ds323x, NaiveDate, DateTimeAccess, Timelike};
-use keypad::Keypad;
+use keypad::{Keypad, KeypadInput};
 use numtoa::NumToA;
 mod keypad;
 
@@ -57,6 +57,7 @@ fn main() -> ! {
         .with_half_bus(d4, d5, d6, d7)
         .with_display(Display::On)
         .with_blink(Blink::On)
+        .with_lines(Lines::TwoLines)
         .with_cursor(Cursor::On)
         .build();
 
@@ -66,48 +67,68 @@ fn main() -> ! {
     let a0 = pins.a0.into_analog_input(&mut adc);
     let mut keypad = Keypad::new(a0, adc);
 
+    let mut input: Option<KeypadInput> = None;
+    let mut counter: u8 = 0;
     loop {
-        let selection = keypad.get_input();
-        if let Some(input) = selection {
-           lcd.clear();
-           let date = rtc.datetime();
-           match date {
-            Ok(date_time) => {
-                let hours = date_time.hour();
-                let minutes = date_time.minute();
-                let seconds = date_time.second();
-                let mut buf = [0u8;16];
-                let hours = hours.numtoa_str(10, &mut buf);
-                let mut buf = [0u8;16];
-                let minutes = minutes.numtoa_str(10, &mut buf);
-                let mut buf = [0u8;16];
-                let seconds = seconds.numtoa_str(10, &mut buf);
-                lcd.print("****");
-                if let 1 = hours.len() {
-                 lcd.print("0");
-                }
-                lcd.print(hours);
-                if let 1 = minutes.len() {
-                 lcd.print(":0");
-                } else {
-                 lcd.print(":");
-                }
-                lcd.print(minutes);
-                if let 1 = seconds.len() {
-                 lcd.print(":0");
-                } else {
-                 lcd.print(":");
-                }
-                lcd.print(seconds);
-                lcd.print("****");
-            },
-            Err(error) => {
-                lcd.print("error");
-            },
-           }
-           lcd.set_position(0, 2);
-           lcd.print(input.to_string());
+        if counter == 0 {
+        lcd.clear();
+        let date = rtc.datetime();
+       match date {
+        Ok(date_time) => {
+            let hours = date_time.hour();
+            let minutes = date_time.minute();
+            let seconds = date_time.second();
+            let mut buf = [0u8;16];
+            let hours = hours.numtoa_str(10, &mut buf);
+            let mut buf = [0u8;16];
+            let minutes = minutes.numtoa_str(10, &mut buf);
+            let mut buf = [0u8;16];
+            let seconds = seconds.numtoa_str(10, &mut buf);
+            lcd.print("****");
+            if let 1 = hours.len() {
+             lcd.print("0");
+            }
+            lcd.print(hours);
+            if let 1 = minutes.len() {
+             lcd.print(":0");
+            } else {
+             lcd.print(":");
+            }
+            lcd.print(minutes);
+            if let 1 = seconds.len() {
+             lcd.print(":0");
+            } else {
+             lcd.print(":");
+            }
+            lcd.print(seconds);
+            lcd.print("****");
+        },
+        Err(_) => {
+            lcd.print("error");
+        }};
+        if let Some(value) = input {
+       lcd.set_position(0, 1);
+       lcd.print(value.to_string());
+        } else {
+       lcd.set_position(0, 1);
+       lcd.print("Press a button.");
         }
+        }
+                // If input detected update the selected value.
+        if let Some(value) = keypad.get_input() {
+            match input {
+                Some(current_value) => {
+                    if value != current_value {
+                        input = Some(value);
+                    }
+                },
+                None => {
+                        input = Some(value);
+
+                },
+            }
+        }
+        counter = (counter + 1) % 10;
 
         arduino_hal::delay_ms(100);
     }

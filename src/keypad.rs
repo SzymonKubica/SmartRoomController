@@ -30,6 +30,7 @@ impl Keypad {
     }
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum KeypadInput {
     Select,
     Up,
