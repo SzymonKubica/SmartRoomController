@@ -43,6 +43,11 @@ impl Clock {
         self.rtc.running()
     }
 
+    fn write_char_to_buffer_at(c: char, index: &mut usize, output_buffer: &mut [u8; 8]) {
+        c.encode_utf8(&mut output_buffer[*index..]);
+        *index += 1;
+    }
+
     pub fn format_time(date_time: NaiveDateTime, output_buffer: &mut [u8; 8]) {
         let mut buffer_index = 0;
         let mut buf = [0u8; 16];
@@ -51,38 +56,31 @@ impl Clock {
 
         // If the hour is a single-digit number we need to prepend a 0.
         if hour.len() == 1 {
-            '0'.encode_utf8(output_buffer);
-            buffer_index += 1;
+            Self::write_char_to_buffer_at('0', &mut buffer_index, output_buffer);
         };
         hour.chars().for_each(|c| {
-            c.encode_utf8(&mut output_buffer[buffer_index..]);
-            buffer_index += 1;
+            Self::write_char_to_buffer_at(c, &mut buffer_index, output_buffer);
         });
-        ':'.encode_utf8(&mut output_buffer[buffer_index..]);
-        buffer_index += 1;
+        Self::write_char_to_buffer_at(':', &mut buffer_index, output_buffer);
 
-        let mut buf = [0u8; 16];
+        // Resuse the same buffer for integer conversion.
+        buf.fill(0);
         let minutes = date_time.minute().numtoa_str(10, &mut buf);
         if minutes.len() == 1 {
-            '0'.encode_utf8(&mut output_buffer[buffer_index..]);
-            buffer_index += 1;
+            Self::write_char_to_buffer_at('0', &mut buffer_index, output_buffer);
         }
         minutes.chars().for_each(|c| {
-            c.encode_utf8(&mut output_buffer[buffer_index..]);
-            buffer_index += 1;
+            Self::write_char_to_buffer_at(c, &mut buffer_index, output_buffer);
         });
-        ':'.encode_utf8(&mut output_buffer[buffer_index..]);
-        buffer_index += 1;
+        Self::write_char_to_buffer_at(':', &mut buffer_index, output_buffer);
 
-        let mut buf = [0u8; 16];
+        buf.fill(0);
         let seconds = date_time.second().numtoa_str(10, &mut buf);
         if seconds.len() == 1 {
-            '0'.encode_utf8(&mut output_buffer[buffer_index..]);
-            buffer_index += 1;
+            Self::write_char_to_buffer_at('0', &mut buffer_index, output_buffer);
         }
         seconds.chars().for_each(|c| {
-            c.encode_utf8(&mut output_buffer[buffer_index..]);
-            buffer_index += 1;
+            Self::write_char_to_buffer_at(c, &mut buffer_index, output_buffer);
         });
     }
     pub fn get_time(
