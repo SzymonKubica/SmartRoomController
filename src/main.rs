@@ -1,7 +1,7 @@
 #![no_std]
 #![no_main]
 
-use core::panic::PanicInfo;
+use core::{panic::PanicInfo, str::from_utf8};
 
 extern crate ag_lcd;
 extern crate arduino_hal;
@@ -45,11 +45,6 @@ fn main() -> ! {
 
         let mut spi =
             arduino_hal::Spi::new(peripherals.SPI, sclk, mosi, miso, cs, Default::default());
-        let datetime = NaiveDate::from_ymd_opt(2023, 4, 18)
-            .unwrap()
-            .and_hms_opt(12, 55, 58)
-            .unwrap();
-        //rtc.set_datetime(&datetime).unwrap();
         let mut lcd: LcdDisplay<_, _> = LcdDisplay::new(rs, en, delay)
             .with_half_bus(d4, d5, d6, d7)
             .with_display(Display::On)
@@ -58,20 +53,31 @@ fn main() -> ! {
             .with_cursor(Cursor::On)
             .build();
 
-        lcd.print("Test message!");
-
         let mut keypad = Keypad::new(peripherals.ADC, pins.a0);
+
+        let datetime = NaiveDate::from_ymd_opt(2023, 4, 23)
+            .unwrap()
+            .and_hms_opt(9, 55, 58)
+            .unwrap();
         let mut clock = Clock::new(peripherals.TWI, pins.a4, pins.a5);
+        //clock.set_time(datetime);
+        lcd.print("Test message.");
 
         let mut input: Option<KeypadInput> = None;
         let mut counter: u8 = 0;
         loop {
+            let mut buf = [0u8; 8];
+            let date_result = clock.get_time(&mut buf);
             if counter == 0 {
                 lcd.clear();
-                match clock.get_date() {
-                    Some(date_str) => lcd.print(date_str),
-                    None => lcd.print("Error"),
-                };
+                if let Err(_) = date_result {
+                    lcd.print("Error");
+                } else {
+                    match from_utf8(&buf) {
+                        Ok(output_str) => lcd.print(output_str),
+                        Err(_) => lcd.print("Error str "),
+                    }
+                }
 
                 if let Some(value) = input {
                     lcd.set_position(0, 1);
