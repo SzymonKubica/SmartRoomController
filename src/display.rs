@@ -38,7 +38,6 @@ impl ShieldDisplay {
         self.lcd.print("----");
         self.print_time(date_time);
         self.lcd.print("----");
-
     }
 
     pub fn print_time(&mut self, date_time: NaiveDateTime) {
