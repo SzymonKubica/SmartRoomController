@@ -69,7 +69,7 @@ fn main() -> ! {
         loop {
             let mut buf = [0u8; 8];
             let date_result = clock.get_time(&mut buf);
-            Clock::format_time(date_time, &mut buf);
+            ShieldDisplay::format_time(date_time, &mut buf);
             if counter == 0 {
                 display.clear();
                 display.print_time_centered(date_time);
