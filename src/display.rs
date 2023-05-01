@@ -23,6 +23,10 @@ impl ShieldDisplay {
         self.lcd.clear();
     }
 
+    pub fn print(&mut self, message: &str) {
+        self.lcd.print(message);
+    }
+
     pub fn print_first_line(&mut self, message: &str) {
         self.lcd.set_position(0, 0);
         self.lcd.print(message);
@@ -75,4 +79,5 @@ impl ShieldDisplay {
         c.encode_utf8(&mut out_buf[*buf_index..]);
         *buf_index += 1;
     }
+
 }
