@@ -14,8 +14,8 @@ use display::ShieldDisplay;
 use ds323x::NaiveDate;
 use keypad::{Keypad, KeypadInput};
 
-mod display;
 mod clock;
+mod display;
 mod keypad;
 
 #[panic_handler]
@@ -45,15 +45,16 @@ fn main() -> ! {
 
         let mut spi =
             arduino_hal::Spi::new(peripherals.SPI, sclk, mosi, miso, cs, Default::default());
-        let mut lcd: LcdDisplay<_, _> = LcdDisplay::new(rs, en, delay)
-            .with_half_bus(d4, d5, d6, d7)
-            .with_display(Display::On)
-            .with_blink(Blink::Off)
-            .with_lines(Lines::TwoLines)
-            .with_cursor(Cursor::Off)
-            .build();
 
-        let mut display: ShieldDisplay = ShieldDisplay::new(lcd);
+        let mut display: ShieldDisplay = ShieldDisplay::new(
+            LcdDisplay::new(rs, en, delay)
+                .with_half_bus(d4, d5, d6, d7)
+                .with_display(Display::On)
+                .with_blink(Blink::Off)
+                .with_lines(Lines::TwoLines)
+                .with_cursor(Cursor::Off)
+                .build(),
+        );
         let mut keypad = Keypad::new(peripherals.ADC, pins.a0);
 
         let date_time = NaiveDate::from_ymd_opt(2023, 4, 23)
@@ -69,7 +70,11 @@ fn main() -> ! {
         loop {
             let mut buf = [0u8; 8];
             let date_result = clock.get_time(&mut buf);
-            ShieldDisplay::format_time(date_time, &mut buf);
+            match date_result {
+                Ok(datetime) => ShieldDisplay::format_time(datetime, &mut buf),
+                Err(_) => ShieldDisplay::format_time(date_time, &mut buf),
+            }
+
             if counter == 0 {
                 display.clear();
                 display.print_time_centered(date_time);
