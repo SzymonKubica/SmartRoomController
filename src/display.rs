@@ -24,7 +24,6 @@ impl ShieldDisplay {
     }
 
     pub fn print_first_line(&mut self, message: &str) {
-        self.lcd.clear();
         self.lcd.set_position(0, 0);
         self.lcd.print(message);
     }

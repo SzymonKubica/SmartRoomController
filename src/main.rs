@@ -10,11 +10,13 @@ extern crate embedded_hal;
 extern crate numtoa;
 use ag_lcd::{Blink, Cursor, Display, LcdDisplay, Lines};
 use clock::Clock;
+use controller::Controller;
 use display::ShieldDisplay;
 use ds323x::NaiveDate;
 use keypad::{Keypad, KeypadInput};
 
 mod clock;
+mod controller;
 mod display;
 mod keypad;
 
@@ -55,7 +57,7 @@ fn main() -> ! {
                 .with_cursor(Cursor::Off)
                 .build(),
         );
-        let mut keypad = Keypad::new(peripherals.ADC, pins.a0);
+        let mut controller = Controller::new(Keypad::new(peripherals.ADC, pins.a0));
 
         let date_time = NaiveDate::from_ymd_opt(2023, 4, 23)
             .unwrap()
@@ -65,38 +67,29 @@ fn main() -> ! {
         //clock.set_time(date_time);
         display.print_first_line("Test message");
 
-        let mut input: Option<KeypadInput> = None;
         let mut counter: u8 = 0;
         loop {
             let mut buf = [0u8; 8];
-            let date_result = clock.get_time(&mut buf);
+            //let date_result = clock.get_time(&mut buf);
+            /*
             match date_result {
                 Ok(datetime) => ShieldDisplay::format_time(datetime, &mut buf),
-                Err(_) => ShieldDisplay::format_time(date_time, &mut buf),
-            }
+                Err(_) => ,
+            }*/
+            ShieldDisplay::format_time(date_time, &mut buf);
 
             if counter == 0 {
-                display.clear();
-                display.print_time_centered(date_time);
-                if let Some(value) = input {
+                if let Some(value) = controller.get_stored_input() {
+                    display.clear();
+                    display.print_time_centered(date_time);
                     display.print_second_line(value.to_string());
                 } else {
+                    display.clear();
+                    display.print_time_centered(date_time);
                     display.print_second_line("Press a button.");
                 }
             }
-            // If input detected update the selected value.
-            if let Some(value) = keypad.get_input() {
-                match input {
-                    Some(current_value) => {
-                        if value != current_value {
-                            input = Some(value);
-                        }
-                    }
-                    None => {
-                        input = Some(value);
-                    }
-                }
-            }
+            controller.read_persistent_input();
             counter = (counter + 1) % 10;
 
             arduino_hal::delay_ms(100);
