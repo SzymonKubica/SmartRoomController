@@ -8,6 +8,8 @@ struct TimeSelector {
     hour: u32,
     minute: u32,
     second: u32,
+    current_mode: SelectorMode,
+    current_field: SelectorField,
 }
 
 impl TimeSelector {
@@ -19,7 +21,13 @@ impl TimeSelector {
             hour: 0,
             minute: 0,
             second: 0,
+            current_mode: SelectorMode::DateSelection,
+            current_field: SelectorField::Year,
         }
+    }
+
+    pub fn next_field(&mut self) {
+
     }
 
     pub fn increment_field(&mut self, selected_field: SelectorField) {
@@ -68,12 +76,30 @@ enum SelectorMode {
 }
 
 enum SelectorField {
+    Date(DateField),
+    Time(TimeField),
+}
+
+enum DateField {
     Year,
     Month,
     Day,
+}
+
+enum TimeField {
     Hour,
     Minute,
     Second,
+}
+
+impl SelectorField {
+    pub fn next_field(&self, mode: SelectorMode) -> SelectorField {
+        match mode {
+            SelectorMode::DateSelection => todo!(),
+            SelectorMode::TimeSelection => todo!(),
+        }
+    }
+
 }
 
 enum Month {
