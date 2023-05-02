@@ -12,6 +12,7 @@ mod clock;
 mod controller;
 mod display;
 mod keypad;
+mod time_selector;
 
 use ag_lcd::{Blink, Cursor, Display, LcdDisplay, Lines};
 use clock::Clock;
