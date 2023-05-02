@@ -10,6 +10,8 @@ use arduino_hal::{
 use ds323x::{NaiveDateTime, Timelike};
 use numtoa::NumToA;
 
+use crate::keypad::KeypadInput;
+
 pub struct ShieldDisplay {
     lcd: LcdDisplay<Pin<Output, Dynamic>, Delay>,
 }
@@ -28,7 +30,6 @@ impl ShieldDisplay {
     }
 
     pub fn print_first_line(&mut self, message: &str) {
-        self.lcd.set_position(0, 0);
         self.lcd.print(message);
     }
 

@@ -17,14 +17,14 @@ impl Controller {
 
     pub fn read_persistent_input(&mut self) -> Option<KeypadInput> {
         let input = self.keypad.get_input();
-        if let Some(input) = input {
-            self.sticky_selection = Some(input);
+        if let Some(value) = input {
+            self.sticky_selection = Some(value);
         }
-        self.sticky_selection
+        self.sticky_selection.clone()
     }
 
     pub fn get_stored_input(&mut self) -> Option<KeypadInput> {
-        self.sticky_selection
+        self.sticky_selection.clone()
     }
 
     pub fn reset_persistent_input(&mut self) {
