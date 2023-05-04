@@ -1,5 +1,4 @@
-use ds323x::{NaiveDateTime, NaiveDate, Datelike};
-
+use ds323x::{Datelike, NaiveDate, NaiveDateTime};
 
 struct TimeSelector {
     year: u32,
@@ -14,7 +13,7 @@ struct TimeSelector {
 
 impl TimeSelector {
     pub fn new() -> Self {
-      Self {
+        Self {
             year: 2023,
             month: Month::January,
             day: 1,
@@ -26,9 +25,7 @@ impl TimeSelector {
         }
     }
 
-    pub fn next_field(&mut self) {
-
-    }
+    pub fn next_field(&mut self) {}
 
     pub fn increment_field(&mut self, selected_field: SelectorField) {
         match selected_field {
@@ -67,7 +64,6 @@ impl TimeSelector {
     fn decrement_month(&mut self) {
         self.month = Month::from_index((self.month.get_index() - 1) % 12)
     }
-
 }
 
 enum SelectorMode {
@@ -99,7 +95,6 @@ impl SelectorField {
             SelectorMode::TimeSelection => todo!(),
         }
     }
-
 }
 
 enum Month {
@@ -169,7 +164,3 @@ impl Month {
         }
     }
 }
-
-
-
-
