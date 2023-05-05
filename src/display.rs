@@ -80,5 +80,4 @@ impl ShieldDisplay {
         c.encode_utf8(&mut out_buf[*buf_index..]);
         *buf_index += 1;
     }
-
 }

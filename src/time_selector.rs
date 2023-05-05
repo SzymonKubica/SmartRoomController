@@ -88,11 +88,38 @@ enum TimeField {
     Second,
 }
 
+impl DateField {
+    pub fn next_field(&self) -> SelectorField {
+        match self {
+            DateField::Year => SelectorField::Date(DateField::Month),
+            DateField::Month => SelectorField::Date(DateField::Day),
+            DateField::Day => SelectorField::Time(TimeField::Hour),
+        }
+    }
+}
+
+impl TimeField {
+    pub fn next_field(&self) -> TimeField {
+        match self {
+            TimeField::Hour => TimeField::Minute,
+            TimeField::Minute => TimeField::Second,
+            TimeField::Second => TimeField::Hour,
+        }
+    }
+}
+
+
 impl SelectorField {
     pub fn next_field(&self, mode: SelectorMode) -> SelectorField {
         match mode {
-            SelectorMode::DateSelection => todo!(),
-            SelectorMode::TimeSelection => todo!(),
+            SelectorMode::DateSelection => match self {
+                SelectorField::Date(date_field) => SelectorField::Date(date_field.next_field()),
+                SelectorField::Time(_) => SelectorField::Date(DateField::Year),
+            },
+            SelectorMode::TimeSelection => match self {
+                SelectorField::Date(_) => SelectorField::Time(TimeField::Hour),
+                SelectorField::Time(time_field) => SelectorField::Time(time_field.next_field()),
+            },
         }
     }
 }
